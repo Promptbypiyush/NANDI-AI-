@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nandi AI</title>
+  <style>
+    body { background: #0f172a; color: #38bdf8; font-family: sans-serif; text-align: center; padding-top: 50px; }
+    button { padding: 20px 40px; font-size: 20px; border-radius: 50px; border: none; background: #0284c7; color: white; cursor: pointer; }
+    #status { margin-top: 20px; font-size: 18px; color: #e2e8f0; }
+  </style>
+</head>
+<body>
+  <h1>नंदी एआई (Nandi AI)</h1>
+  <button onclick="startNandi()">बोलें (Start)</button>
+  <div id="status">आज्ञा दें...</div>
+
+  <script>
+    const statusDiv = document.getElementById('status');
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'hi-IN';
+
+    function speak(text) {
+      const msg = new SpeechSynthesisUtterance(text);
+      msg.lang = 'hi-IN';
+      window.speechSynthesis.speak(msg);
+      statusDiv.innerText = text;
+    }
+
+    function startNandi() {
+      statusDiv.innerText = "सुन रहा हूँ...";
+      recognition.start();
+    }
+
+    recognition.onresult = async (event) => {
+      const command = event.results[0][0].transcript.toLowerCase();
+      statusDiv.innerText = "आपने कहा: " + command;
+
+      // ऐप्स खोलने के कमांड्स
+      if (command.includes("youtube") || command.includes("यूट्यूब")) {
+        speak("यूट्यूब खोल रहा हूँ");
+        window.location.href = "https://www.youtube.com";
+      } else if (command.includes("whatsapp") || command.includes("व्हाट्सएप")) {
+        speak("व्हाट्सएप खोल रहा हूँ");
+        window.location.href = "https://wa.me/";
+      } else if (command.includes("instagram") || command.includes("इंस्टाग्राम")) {
+        speak("इंस्टाग्राम खोल रहा हूँ");
+        window.location.href = "https://www.instagram.com";
+      } else {
+        // विकिपीडिया से जानकारी निकालना
+        speak("जानकारी खोज रहा हूँ...");
+        let query = command.replace("क्या है", "").replace("कौन है", "").trim();
+        try {
+          let res = await fetch(`https://hi.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+          let data = await res.json();
+          if (data.extract) {
+            speak(data.extract);
+          } else {
+            speak("माफ कीजिये, मुझे इसकी जानकारी नहीं मिली।");
+          }
+        } catch (e) {
+          speak("इंटरनेट या जानकारी खोजने में समस्या आई।");
+        }
+      }
+    };
+  </script>
+</body>
+</html>
